@@ -41,7 +41,7 @@ router.post("/api/:key", async ({ request, response, params }) => {
     return;
   }
 
-  const payload = await request.body().value;
+  const payload = JSON.parse(await request.body().value);
   if (!("value" in payload)) {
     response.status = 400;
     response.body = {
@@ -56,7 +56,7 @@ router.post("/api/:key", async ({ request, response, params }) => {
   response.status = 200;
 });
 
-app.use(oakCors());
+app.use(oakCors({ origin: "http://localhost:8000" }));
 app.use(router.routes());
 
 const env = Deno.env.toObject();
