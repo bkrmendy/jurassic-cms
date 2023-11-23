@@ -16,7 +16,6 @@ const db: DB = {
 };
 
 router.get("/api/:key", ({ response, params }) => {
-  console.log(`GET /api/${params.key}`);
   const key = params.key;
   if (!(key in db)) {
     response.status = 400;
@@ -27,6 +26,7 @@ router.get("/api/:key", ({ response, params }) => {
     return;
   }
 
+  response.status = 200;
   response.body = vercelStegaCombine(db[key], { key });
 });
 
