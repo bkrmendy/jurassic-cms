@@ -1,4 +1,4 @@
-import { vercelStegaCombine } from "npm:@vercel/stega";
+import { vercelStegaCombine, vercelStegaSplit } from "npm:@vercel/stega";
 import { oakCors } from "https://deno.land/x/cors/mod.ts";
 import { Router, Application } from "./deps.ts";
 
@@ -51,7 +51,7 @@ router.post("/api/:key", async ({ request, response, params }) => {
     return;
   }
 
-  db[params.key] = payload.value;
+  db[params.key] = vercelStegaSplit(payload.value).cleaned;
 
   response.status = 200;
 });
