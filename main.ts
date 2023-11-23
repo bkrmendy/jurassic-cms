@@ -51,7 +51,17 @@ router.post("/api/:key", async ({ request, response, params }) => {
     return;
   }
 
-  db[params.key] = vercelStegaSplit(payload.value).cleaned;
+  const { cleaned } = vercelStegaSplit(payload.value);
+  if (cleaned === "non") {
+    response.status = 400;
+    response.body = {
+      success: false,
+      msg: "Non!",
+    };
+    return;
+  }
+
+  db[params.key] = cleaned;
 
   response.status = 200;
 });
