@@ -76,6 +76,28 @@ async function set_key({
   );
 }
 
+router.post("/api/hydrate", async ({ response }) => {
+  await setup_db();
+  await set_key({
+    projectId: "33",
+    key: "title",
+    value: "Chapter 1",
+  });
+
+  await set_key({
+    projectId: "33",
+    key: "author",
+    value: "Charles Dickens",
+  });
+
+  await set_key({
+    projectId: "33",
+    key: "description",
+    value: "A masterpiece for the ages",
+  });
+  response.status = 200;
+});
+
 router.get("/api/:project_id/:key", async ({ response, params }) => {
   await setup_db();
   const { key, project_id } = params;
