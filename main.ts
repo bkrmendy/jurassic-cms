@@ -17,12 +17,14 @@ const status400 = (response: Response, message: string) => {
 const app = new Application();
 const router = new Router();
 
+const env = Deno.env.toObject();
+
 const create_client = () => {
   return new Client({
-    user: "postgres",
-    database: "postgres",
-    hostname: "localhost",
-    port: 45678,
+    user: env.DB_USER,
+    database: env.DB_NAME,
+    hostname: env.DB_HOSTNAME,
+    port: env.DB_PORT,
   });
 };
 
@@ -116,9 +118,8 @@ router.post("/api/:project_id/:key", async ({ request, response, params }) => {
 app.use(oakCors({ origin: "http://localhost:8000" }));
 app.use(router.routes());
 
-const env = Deno.env.toObject();
-const PORT = env.PORT || 6789;
-const HOST = env.HOST || "0.0.0.0";
+const PORT = env.PORT;
+const HOST = env.HOST;
 
 console.log(`Server running on port ${PORT}`);
 
