@@ -12,7 +12,7 @@ primary_region = "otp"
   PORT = "8080"
 
 [processes]
-  app = "deno --allow-env --allow-net --allow-read --env=.env.prod main.ts"
+  app = "run --allow-env --allow-net --allow-read --env=.env.prod main.ts"
 
 [http_service]
   internal_port = 8080

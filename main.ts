@@ -19,35 +19,36 @@ const router = new Router();
 
 const env = Deno.env.toObject();
 
-const create_client = () => {
-  return new Client({
-    user: env.DB_USER,
-    database: env.DB_NAME,
-    hostname: env.DB_HOSTNAME,
-    port: env.DB_PORT,
-  });
-};
+async function with_db<T>(fn: (client: Client) => Promise<T>): Promise<T> {
+  const client = new Client(env.DB_CONNECTION_STRING);
 
-async function setup_db() {
-  const client = create_client();
   await client.connect();
-  await client.queryObject(`create table if not exists config (
+
+  const result = await fn(client);
+
+  await client.end();
+  return result;
+}
+
+async function setup_db(client: Client) {
+  await client.queryObject(`CREATE TABLE IF NOT EXISTS config (
     project_id TEXT,
     key TEXT,
     value TEXT,
     PRIMARY KEY(project_id, key)
-  )`);
+  );`);
 }
 
-async function get_key({
-  projectId,
-  key,
-}: {
-  projectId: string;
-  key: string;
-}): Promise<string | null> {
-  const client = create_client();
-
+async function get_key(
+  client: Client,
+  {
+    projectId,
+    key,
+  }: {
+    projectId: string;
+    key: string;
+  }
+): Promise<string | null> {
   const result = await client.queryArray(
     "SELECT value FROM config WHERE project_id = $1 AND key = $2;",
     [projectId, key]
@@ -60,16 +61,18 @@ async function get_key({
   return result.rows[0][0] as string;
 }
 
-async function set_key({
-  projectId,
-  key,
-  value,
-}: {
-  projectId: string;
-  key: string;
-  value: string;
-}): Promise<void> {
-  const client = create_client();
+async function set_key(
+  client: Client,
+  {
+    projectId,
+    key,
+    value,
+  }: {
+    projectId: string;
+    key: string;
+    value: string;
+  }
+): Promise<void> {
   await client.queryArray(
     "INSERT INTO config (project_id, key, value) VALUES ($1, $2, $3) ON CONFLICT (project_id, key) DO UPDATE SET value = excluded.value;",
     [projectId, key, value]
@@ -77,31 +80,35 @@ async function set_key({
 }
 
 router.post("/api/hydrate", async ({ response }) => {
-  await setup_db();
-  await set_key({
-    projectId: "33",
-    key: "title",
-    value: "Chapter 1",
-  });
+  await with_db(async (client) => {
+    await setup_db(client);
+    await set_key(client, {
+      projectId: "33",
+      key: "title",
+      value: "Chapter 1",
+    });
 
-  await set_key({
-    projectId: "33",
-    key: "author",
-    value: "Charles Dickens",
-  });
+    await set_key(client, {
+      projectId: "33",
+      key: "author",
+      value: "Charles Dickens",
+    });
 
-  await set_key({
-    projectId: "33",
-    key: "description",
-    value: "A masterpiece for the ages",
+    await set_key(client, {
+      projectId: "33",
+      key: "description",
+      value: "A masterpiece for the ages",
+    });
+    response.status = 200;
   });
-  response.status = 200;
 });
 
 router.get("/api/:project_id/:key", async ({ response, params }) => {
-  await setup_db();
   const { key, project_id } = params;
-  const result = await get_key({ projectId: project_id, key: key });
+  const result = await with_db(async (client) => {
+    await setup_db(client);
+    return await get_key(client, { projectId: project_id, key: key });
+  });
   if (result == null) {
     status400(response, "Key not found");
     return;
@@ -127,11 +134,13 @@ router.post("/api/:project_id/:key", async ({ request, response, params }) => {
     return;
   }
 
-  await setup_db();
-  await set_key({
-    projectId: params.project_id,
-    key: params.key,
-    value: cleaned,
+  await with_db(async (client) => {
+    await setup_db(client);
+    await set_key(client, {
+      projectId: params.project_id,
+      key: params.key,
+      value: cleaned,
+    });
   });
 
   status200(response, cleaned);
