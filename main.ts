@@ -66,13 +66,16 @@ async function get_key(
 async function get_all_keys(
   client: Client,
   projectId: string
-): Promise<string[]> {
+): Promise<Array<{ key: string; value: string }>> {
   const result = await client.queryArray(
-    "SELECT key FROM config WHERE project_id = $1;",
+    "SELECT key, value FROM config WHERE project_id = $1;",
     [projectId]
   );
 
-  return result.rows.map((r) => r[0] as string);
+  return result.rows.map((row) => ({
+    key: row[0] as string,
+    value: row[1] as string,
+  }));
 }
 
 async function set_key(
@@ -117,7 +120,7 @@ router.post("/api/hydrate", async ({ response }) => {
   });
 });
 
-router.get("/api/:project_id", async ({ response, params }) => {
+router.get("/api/:project_id/keys", async ({ response, params }) => {
   await with_db(async (client) => {
     const keys = await get_all_keys(client, params.project_id);
     status200(response, keys);
