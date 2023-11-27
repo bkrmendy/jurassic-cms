@@ -98,7 +98,6 @@ async function set_key(
 
 router.post("/api/:project_id/hydrate", async ({ response, params }) => {
   await with_db(async (client) => {
-    await setup_db(client);
     await set_key(client, {
       projectId: params.project_id,
       key: "title",
@@ -130,7 +129,6 @@ router.get("/api/:project_id/keys", async ({ response, params }) => {
 router.get("/api/:project_id/:key", async ({ response, params }) => {
   const { key, project_id } = params;
   const result = await with_db(async (client) => {
-    await setup_db(client);
     return await get_key(client, { projectId: project_id, key: key });
   });
   if (result == null) {
@@ -159,7 +157,6 @@ router.post("/api/:project_id/:key", async ({ request, response, params }) => {
   }
 
   await with_db(async (client) => {
-    await setup_db(client);
     await set_key(client, {
       projectId: params.project_id,
       key: params.key,
@@ -177,5 +174,7 @@ const PORT = env.PORT || 6789;
 const HOST = "0.0.0.0";
 
 console.log(`Server running on port ${PORT}`);
+
+await with_db((client) => setup_db(client));
 
 app.listen(`${HOST}:${PORT}`);
