@@ -96,6 +96,22 @@ async function set_key(
   );
 }
 
+async function delete_key(
+  client: Client,
+  {
+    projectId,
+    key,
+  }: {
+    projectId: string;
+    key: string;
+  }
+): Promise<void> {
+  await client.queryObject(
+    "DELETE FROM config WHERE project_id = $1 AND key = $2;",
+    [projectId, key]
+  );
+}
+
 router.post("/api/:project_id/hydrate", async ({ response, params }) => {
   await with_db(async (client) => {
     await set_key(client, {
@@ -165,6 +181,13 @@ router.post("/api/:project_id/:key", async ({ request, response, params }) => {
   });
 
   status200(response, cleaned);
+});
+
+router.delete("/api/:project_id/:key", async ({ response, params }) => {
+  await with_db((client) =>
+    delete_key(client, { projectId: params.project_id, key: params.key })
+  );
+  status200(response, {});
 });
 
 app.use(oakCors({ origin: ["http://localhost:8000", "https://utopia.pizza"] }));
