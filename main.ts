@@ -96,23 +96,23 @@ async function set_key(
   );
 }
 
-router.post("/api/hydrate", async ({ response }) => {
+router.post("/api/:project_id/hydrate", async ({ response, params }) => {
   await with_db(async (client) => {
     await setup_db(client);
     await set_key(client, {
-      projectId: "33",
+      projectId: params.project_id,
       key: "title",
       value: "Chapter 1",
     });
 
     await set_key(client, {
-      projectId: "33",
+      projectId: params.project_id,
       key: "author",
       value: "Charles Dickens",
     });
 
     await set_key(client, {
-      projectId: "33",
+      projectId: params.project_id,
       key: "description",
       value: "A masterpiece for the ages",
     });
