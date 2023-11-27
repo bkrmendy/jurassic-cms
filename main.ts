@@ -68,7 +68,7 @@ async function get_all_keys(
   projectId: string
 ): Promise<Array<{ key: string; value: string }>> {
   const result = await client.queryArray(
-    "SELECT key, value FROM config WHERE project_id = $1;",
+    "SELECT key, value FROM config WHERE project_id = $1 ORDER BY key;",
     [projectId]
   );
 
