@@ -20,7 +20,9 @@ const router = new Router();
 const env = Deno.env.toObject();
 
 async function with_db<T>(fn: (client: Client) => Promise<T>): Promise<T> {
-  const client = new Client(env.DB_CONNECTION_STRING);
+  const DATABASE_URL =
+    env.DATABASE_URL ?? "postgres://postgres@localhost:45678/postgres";
+  const client = new Client(DATABASE_URL);
 
   await client.connect();
 
@@ -146,11 +148,11 @@ router.post("/api/:project_id/:key", async ({ request, response, params }) => {
   status200(response, cleaned);
 });
 
-app.use(oakCors({ origin: "http://localhost:8000" }));
+app.use(oakCors({ origin: ["http://localhost:8000", "https://utopia.pizza"] }));
 app.use(router.routes());
 
-const PORT = env.PORT;
-const HOST = env.HOST;
+const PORT = env.PORT || 6789;
+const HOST = "0.0.0.0";
 
 console.log(`Server running on port ${PORT}`);
 
