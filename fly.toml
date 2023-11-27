@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for jurassic-cms on 2023-11-24T13:18:08+01:00
+# fly.toml app configuration file generated for jurassic-cms-weathered-forest-3796 on 2023-11-27T10:34:32+01:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "jurassic-cms"
+app = "jurassic-cms-weathered-forest-3796"
 primary_region = "otp"
 
 [build]
@@ -12,7 +12,7 @@ primary_region = "otp"
   PORT = "8080"
 
 [processes]
-  app = "run --allow-env --allow-net --allow-read --env=.env.prod main.ts"
+  app = "run --allow-env --allow-net --allow-read main.ts"
 
 [http_service]
   internal_port = 8080
@@ -26,3 +26,4 @@ primary_region = "otp"
   cpu_kind = "shared"
   cpus = 1
   memory_mb = 256
+  processes = ["app"]

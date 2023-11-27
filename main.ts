@@ -63,6 +63,18 @@ async function get_key(
   return result.rows[0][0] as string;
 }
 
+async function get_all_keys(
+  client: Client,
+  projectId: string
+): Promise<string[]> {
+  const result = await client.queryArray(
+    "SELECT key FROM config WHERE project_id = $1;",
+    [projectId]
+  );
+
+  return result.rows.map((r) => r[0] as string);
+}
+
 async function set_key(
   client: Client,
   {
@@ -102,6 +114,13 @@ router.post("/api/hydrate", async ({ response }) => {
       value: "A masterpiece for the ages",
     });
     response.status = 200;
+  });
+});
+
+router.get("/api/:project_id", async ({ response, params }) => {
+  await with_db(async (client) => {
+    const keys = await get_all_keys(client, params.project_id);
+    status200(response, keys);
   });
 });
 
